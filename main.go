@@ -9,6 +9,7 @@ import (
 
 	"github.com/Yolsh/AoC-2024/Day1"
 	"github.com/Yolsh/AoC-2024/Day2"
+	"github.com/Yolsh/AoC-2024/Day3"
 )
 
 func main() {
@@ -33,6 +34,8 @@ func main() {
 		Day1.Run()
 	case int64(slices.Index(packages, "Day2")) + 1:
 		Day2.Run()
+	case int64(slices.Index(packages, "Day3")) + 1:
+		Day3.Run()
 	default:
 		fmt.Println("That opton isn't available")
 	}
