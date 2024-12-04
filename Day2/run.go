@@ -41,9 +41,15 @@ func checkReport(report []string, ln int, removed bool) bool {
 		fmt.Printf("(%d, %d): %d - %d => (%d, %d)\n", ln, i, prevNum, thisNum, dif, increasing)
 		if (math.Abs(float64(dif)) < 1 || math.Abs(float64(dif)) > 3) || (increasing != 0 && increasing != i-1) {
 			if !removed {
-				report = slices.Concat(report[:i-1], report[i:])
-				fmt.Println(report)
-				return checkReport(report, ln, true)
+				if increasing != 0 && increasing != i-1 {
+					report = slices.Concat(report[:i-2], report[i-1:])
+					fmt.Println(report)
+					return checkReport(report, ln, true)
+				} else {
+					report = slices.Concat(report[:i-1], report[i:])
+					fmt.Println(report)
+					return checkReport(report, ln, true)
+				}
 			} else {
 				fmt.Println("fail")
 				return false
