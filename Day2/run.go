@@ -2,7 +2,6 @@ package Day2
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"slices"
 	"strconv"
@@ -17,17 +16,27 @@ func Run() {
 	extrapDat := string(data)
 	lines := strings.Split(strings.ReplaceAll(extrapDat, "\r", ""), "\n")
 	tot := 0
-	for ln, line := range lines {
+	for _, line := range lines {
 		report := strings.Split(line, " ")
-		if checkReport(report, ln, false) {
+		fmt.Println(report)
+		if checkReport(report) {
 			tot++
+		} else {
+			for i := range report {
+				temp := slices.Concat(report[:i], report[i+1:])
+				fmt.Printf("temp: %s\n", temp)
+				if checkReport(temp) {
+					tot++
+					break
+				}
+			}
 		}
 	}
 	fmt.Println(tot)
 }
 
-func checkReport(report []string, ln int, removed bool) bool {
-	var increasing int = 0
+func checkReport(report []string) bool {
+	var increasing bool
 	for i := 1; i < len(report); i++ {
 		thisNum, err := strconv.Atoi(report[i])
 		if err != nil {
@@ -37,26 +46,19 @@ func checkReport(report []string, ln int, removed bool) bool {
 		if err != nil {
 			panic(err)
 		}
+
 		dif := thisNum - prevNum
-		fmt.Printf("(%d, %d): %d - %d => (%d, %d)\n", ln, i, prevNum, thisNum, dif, increasing)
-		if (math.Abs(float64(dif)) < 1 || math.Abs(float64(dif)) > 3) || (increasing != 0 && increasing != i-1) {
-			if !removed {
-				if increasing != 0 && increasing != i-1 {
-					report = slices.Concat(report[:i-2], report[i-1:])
-					fmt.Println(report)
-					return checkReport(report, ln, true)
-				} else {
-					report = slices.Concat(report[:i-1], report[i:])
-					fmt.Println(report)
-					return checkReport(report, ln, true)
-				}
-			} else {
-				fmt.Println("fail")
+		if i == 1 && dif > 0 {
+			increasing = true
+		}
+		if increasing {
+			if dif < 1 || dif > 3 || dif < 0 {
 				return false
 			}
-		}
-		if dif >= 1 {
-			increasing++
+		} else {
+			if dif > -1 || dif < -3 || dif > 0 {
+				return false
+			}
 		}
 	}
 	return true
