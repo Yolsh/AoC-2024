@@ -3,7 +3,6 @@ package Day6
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 )
 
@@ -18,10 +17,94 @@ type Guard struct {
 	rotation Rotation
 }
 
-var re = regexp.MustCompile(`(^(X|O)(X|O)+#$)|(^#(X|O)(X|O)+$)`)
-
 func Run() {
-	data, err := os.ReadFile("./Day6/Input.txt")
+	newmap := guardPath(getMap())
+	tot := 1
+	for _, line := range newmap {
+		for _, ch := range line {
+			if ch == 'X' {
+				tot++
+			}
+			fmt.Print(string(ch))
+		}
+		fmt.Println("")
+	}
+	obstacles := p2(getMap())
+	fmt.Println(tot, obstacles)
+}
+
+func guardPath(guard Guard, sitmap [][]rune) [][]rune {
+	for (guard.X > 0 && guard.X < len(sitmap[0])-1) && (guard.Y > 0 && guard.Y < len(sitmap)-1) {
+		if sitmap[guard.Y+guard.rotation.Y][guard.X+guard.rotation.X] == '#' {
+			guard.rotation = rotateGuard(guard)
+		}
+		sitmap[guard.Y][guard.X] = 'X'
+		guard.X += guard.rotation.X
+		guard.Y += guard.rotation.Y
+	}
+	return sitmap
+}
+
+func rotateGuard(guard Guard) Rotation {
+	if guard.rotation.X == 0 && guard.rotation.Y == -1 {
+		return Rotation{1, 0}
+	} else if guard.rotation.X == 1 && guard.rotation.Y == 0 {
+		return Rotation{0, 1}
+	} else if guard.rotation.X == 0 && guard.rotation.Y == 1 {
+		return Rotation{-1, 0}
+	} else {
+		return Rotation{0, -1}
+	}
+}
+
+func tryLoop(guard Guard, sitmap [][]rune, sX, sY int) bool {
+	var pArr [][]int
+	for range sitmap {
+		var pLine []int
+		for range sitmap[0] {
+			pLine = append(pLine, 0)
+		}
+		pArr = append(pArr, pLine)
+	}
+	px, py := guard.X+guard.rotation.X, guard.Y+guard.rotation.Y
+	sitmap[py][px] = '#'
+	guard.X, guard.Y = sX, sY
+	guard.rotation = Rotation{0, -1}
+	for (guard.X > 0 && guard.X < len(sitmap[0])-1) && (guard.Y > 0 && guard.Y < len(sitmap)-1) {
+		if sitmap[guard.Y+guard.rotation.Y][guard.X+guard.rotation.X] == '#' {
+			guard.rotation = rotateGuard(guard)
+		}
+		if pArr[guard.Y][guard.X] == 5 {
+			sitmap[py][px] = '.'
+			return true
+		}
+		pArr[guard.Y][guard.X]++
+		guard.X += guard.rotation.X
+		guard.Y += guard.rotation.Y
+	}
+	sitmap[py][px] = '.'
+	return false
+}
+
+func p2(guard Guard, sitmap [][]rune) int {
+	tot := 0
+	sX, sY := guard.X, guard.Y
+	for (guard.X > 0 && guard.X < len(sitmap[0])-1) && (guard.Y > 0 && guard.Y < len(sitmap)-1) {
+		if sitmap[guard.Y+guard.rotation.Y][guard.X+guard.rotation.X] == '#' {
+			guard.rotation = rotateGuard(guard)
+		}
+		if (guard.X != sX && guard.Y != sY) && tryLoop(guard, sitmap, sX, sY) {
+			tot++
+			fmt.Printf("%d\n", tot)
+		}
+		guard.X += guard.rotation.X
+		guard.Y += guard.rotation.Y
+	}
+	return tot
+}
+
+func getMap() (Guard, [][]rune) {
+	data, err := os.ReadFile("./Day6/Test.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -38,72 +121,5 @@ func Run() {
 		}
 		sitmap = append(sitmap, sitline)
 	}
-	newmap := guardPath(guard, sitmap)
-	tot := 1
-	p2 := 0
-	for _, line := range newmap {
-		fmt.Printf("%s\n", line)
-	}
-	for _, line := range newmap {
-		tot += strings.Count(line, "X")
-		tot += strings.Count(line, "O")
-		p2 += strings.Count(line, "O")
-	}
-	fmt.Println(tot, p2)
-}
-
-func guardPath(guard Guard, sitmap [][]rune) []string {
-	for (guard.X > 0 && guard.X < len(sitmap[0])-1) && (guard.Y > 0 && guard.Y < len(sitmap)-1) {
-		if sitmap[guard.Y+guard.rotation.Y][guard.X+guard.rotation.X] == '#' {
-			guard.rotation = rotateGuard(guard)
-		}
-		if intersected(guard, rotateGuard(guard), sitmap) {
-			sitmap[guard.Y+guard.rotation.Y][guard.X+guard.rotation.X] = 'O'
-		}
-		if sitmap[guard.Y][guard.X] != 'O' {
-			sitmap[guard.Y][guard.X] = 'X'
-		}
-		guard.X += guard.rotation.X
-		guard.Y += guard.rotation.Y
-	}
-	var result []string
-	for _, line := range sitmap {
-		result = append(result, string(line))
-	}
-	fmt.Printf("%+v\n", guard)
-	return result
-}
-
-func rotateGuard(guard Guard) Rotation {
-	if guard.rotation.X == 0 && guard.rotation.Y == -1 {
-		return Rotation{1, 0}
-	} else if guard.rotation.X == 1 && guard.rotation.Y == 0 {
-		return Rotation{0, 1}
-	} else if guard.rotation.X == 0 && guard.rotation.Y == 1 {
-		return Rotation{-1, 0}
-	} else {
-		return Rotation{0, -1}
-	}
-}
-
-func intersected(guard Guard, rog Rotation, sitmap [][]rune) bool {
-	var rLine string
-	if rog.Y != 0 {
-		for Y := range sitmap {
-			if rog.Y == 1 && Y > guard.Y {
-				rLine += string(sitmap[Y][guard.X])
-			} else if rog.Y == -1 && Y < guard.Y {
-				rLine += string(sitmap[Y][guard.X])
-			}
-		}
-	} else {
-		for X := range sitmap[guard.Y] {
-			if rog.X == 1 && X > guard.X {
-				rLine += string(sitmap[guard.Y][X])
-			} else if rog.X == -1 && X < guard.X {
-				rLine += string(sitmap[guard.Y][X])
-			}
-		}
-	}
-	return re.MatchString(strings.Trim(rLine, "."))
+	return guard, sitmap
 }
