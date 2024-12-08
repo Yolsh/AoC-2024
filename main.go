@@ -14,6 +14,8 @@ import (
 	"github.com/Yolsh/AoC-2024/Day5"
 	"github.com/Yolsh/AoC-2024/Day6"
 	"github.com/Yolsh/AoC-2024/Day7"
+	"github.com/Yolsh/AoC-2024/Day8"
+	"github.com/Yolsh/AoC-2024/Day9"
 )
 
 func main() {
@@ -48,8 +50,12 @@ func main() {
 		Day6.Run()
 	case int64(slices.Index(packages, "Day7")) + 1:
 		Day7.Run()
+	case int64(slices.Index(packages, "Day8")) + 1:
+		Day8.Run()
+	case int64(slices.Index(packages, "Day9")) + 1:
+		Day9.Run()
 	default:
-		fmt.Println("That opton isn't available")
+		fmt.Println("That option isn't available")
 	}
 }
 

@@ -18,7 +18,7 @@ type Guard struct {
 }
 
 func Run() {
-	newmap := guardPath(getMap())
+	newmap := p1(getMap())
 	tot := 1
 	for _, line := range newmap {
 		for _, ch := range line {
@@ -33,7 +33,7 @@ func Run() {
 	fmt.Println(tot, obstacles)
 }
 
-func guardPath(guard Guard, sitmap [][]rune) [][]rune {
+func p1(guard Guard, sitmap [][]rune) [][]rune {
 	for (guard.X > 0 && guard.X < len(sitmap[0])-1) && (guard.Y > 0 && guard.Y < len(sitmap)-1) {
 		if sitmap[guard.Y+guard.rotation.Y][guard.X+guard.rotation.X] == '#' {
 			guard.rotation = rotateGuard(guard)
@@ -57,7 +57,7 @@ func rotateGuard(guard Guard) Rotation {
 	}
 }
 
-func tryLoop(guard Guard, sitmap [][]rune, sX, sY int) bool {
+func tryLoop(sX, sY int, sitmap [][]rune, hx, hy int) bool {
 	var pArr [][]int
 	for range sitmap {
 		var pLine []int
@@ -66,23 +66,21 @@ func tryLoop(guard Guard, sitmap [][]rune, sX, sY int) bool {
 		}
 		pArr = append(pArr, pLine)
 	}
-	px, py := guard.X+guard.rotation.X, guard.Y+guard.rotation.Y
-	sitmap[py][px] = '#'
-	guard.X, guard.Y = sX, sY
-	guard.rotation = Rotation{0, -1}
+	sitmap[hy][hx] = '#'
+	guard := Guard{sX, sY, Rotation{0, -1}}
 	for (guard.X > 0 && guard.X < len(sitmap[0])-1) && (guard.Y > 0 && guard.Y < len(sitmap)-1) {
 		if sitmap[guard.Y+guard.rotation.Y][guard.X+guard.rotation.X] == '#' {
 			guard.rotation = rotateGuard(guard)
 		}
 		if pArr[guard.Y][guard.X] == 5 {
-			sitmap[py][px] = '.'
+			sitmap[hy][hx] = '.'
 			return true
 		}
 		pArr[guard.Y][guard.X]++
 		guard.X += guard.rotation.X
 		guard.Y += guard.rotation.Y
 	}
-	sitmap[py][px] = '.'
+	sitmap[hy][hx] = '.'
 	return false
 }
 
@@ -93,7 +91,7 @@ func p2(guard Guard, sitmap [][]rune) int {
 		if sitmap[guard.Y+guard.rotation.Y][guard.X+guard.rotation.X] == '#' {
 			guard.rotation = rotateGuard(guard)
 		}
-		if (guard.X != sX && guard.Y != sY) && tryLoop(guard, sitmap, sX, sY) {
+		if (guard.X != sX && guard.Y != sY) && tryLoop(sX, sY, sitmap, guard.X+guard.rotation.X, guard.Y+guard.rotation.Y) {
 			tot++
 			fmt.Printf("%d\n", tot)
 		}
